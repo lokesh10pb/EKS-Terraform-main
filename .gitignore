@@ -1,0 +1,25 @@
+# Local Terraform providers, plans, configuration and state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+crash.log
+crash.*.log
+
+# Credentials and local SSH keys
+.keys/
+.aws/
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Local editor / OS files
+.DS_Store
+.idea/
+.vscode/

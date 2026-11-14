@@ -1,0 +1,9 @@
+project_name      = "my-project"
+ec2_instance_type = "t3.medium"
+
+# Replace this documentation address with YOUR current public IPv4 address.
+ssh_allowed_cidr = "203.0.113.10/32"
+
+eks_instance_types = ["t3.medium"]
+eks_capacity_type  = "ON_DEMAND"
+eks_node_count     = 3
