@@ -33,6 +33,14 @@ cp terraform.tfvars.example terraform.tfvars
 
 Edit `terraform.tfvars`: replace `203.0.113.10/32` with **your current public IPv4 address followed by `/32`**. The example address will not let you SSH. This is your internet-facing IP, not a private Wi-Fi address such as `192.168.x.x`. Update it if your ISP or VPN changes your address.
 
+Find your public IPv4 address with:
+
+```sh
+curl -4 https://checkip.amazonaws.com
+```
+
+Put the returned address followed by `/32` in `terraform.tfvars`. If Terraform displays `var.ssh_allowed_cidr`, it is asking for that address, not approval: do not enter `yes` there. Enter `yes` only at the final apply confirmation. Saving the value in `terraform.tfvars` avoids the variable prompt.
+
 The variables control:
 
 - `ec2_instance_type`: type for all three standalone servers, default `t3.medium`. They use On-Demand purchasing; no Spot request is configured.
@@ -49,7 +57,7 @@ aws sts get-caller-identity
 terraform init
 terraform fmt -check
 terraform validate
-terraform plan
+terraform plan -input=false
 terraform apply
 ```
 

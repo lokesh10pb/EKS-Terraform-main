@@ -11,12 +11,12 @@ variable "ec2_instance_type" {
 }
 
 variable "ssh_allowed_cidr" {
-  description = "Your public IPv4 address with /32, allowed to SSH to the standalone servers"
+  description = "Your public IPv4 address followed by /32 (for example 203.0.113.10/32). This is not a yes/no prompt."
   type        = string
 
   validation {
     condition     = can(cidrnetmask(var.ssh_allowed_cidr)) && can(regex("/32$", var.ssh_allowed_cidr))
-    error_message = "Set ssh_allowed_cidr to your public IPv4 address followed by /32."
+    error_message = "ssh_allowed_cidr must be your public IPv4 address followed by /32, not yes/no. Set it in terraform.tfvars, for example: ssh_allowed_cidr = \"203.0.113.10/32\" (replace with your actual public IP)."
   }
 }
 
