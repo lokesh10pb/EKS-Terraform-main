@@ -23,7 +23,32 @@ That is **six EC2 instances total**, plus the EKS control plane. The standalone 
 
 VPC means Virtual Private Cloud. PVC means PersistentVolumeClaim, a Kubernetes storage resource that belongs in the deployment configuration later.
 
-## Configure and apply
+## 1. Generate the SSH key pair
+
+Run these commands on your local Mac or Linux machine **inside the `EKS-Terraform-main` directory**. If you already have `../.keys/bankapp-eks` and `../.keys/bankapp-eks.pub`, keep them and skip key generation. Do not overwrite the keys used by existing servers.
+
+```sh
+mkdir -p ../.keys
+chmod 700 ../.keys
+ssh-keygen -t ed25519 -f ../.keys/bankapp-eks -C "my-project-ec2"
+chmod 600 ../.keys/bankapp-eks
+```
+
+At the passphrase prompt, enter a passphrase to protect the private key, or press Enter twice for no passphrase. The command creates:
+
+```text
+parent-folder/
+├── .keys/
+│   ├── bankapp-eks       # Private key: keep local, use for SSH
+│   └── bankapp-eks.pub   # Public key: Terraform imports this into AWS
+└── EKS-Terraform-main/
+    ├── ec2.tf
+    └── ...
+```
+
+Keep both files for future use. Terraform imports the public key as `my-project-ssh` during apply. You do not need to create a key in the AWS console or download a `.pem` file. Keep the private key outside GitHub; the `.pub` file cannot be used in its place for SSH.
+
+## 2. Configure and apply
 
 Run Terraform on your local machine from this directory, with AWS CLI credentials configured for your account:
 
@@ -67,7 +92,7 @@ If you clone this infrastructure repository separately, place your existing key 
 
 The official Ubuntu AMI is looked up by Canonical's owner ID and image name. New Ubuntu images can cause a later plan to propose server replacements; review the plan. See [Canonical's image lookup documentation](https://ubuntu.com/aws/docs/aws-how-to/instances/find-ubuntu-images/).
 
-## SSH after creation
+## 3. Connect to the EC2 servers after creation
 
 From this Terraform directory:
 
@@ -90,9 +115,17 @@ ssh -i ../.keys/bankapp-eks ubuntu@SERVER_3_PUBLIC_IP
 
 Run one SSH command at a time, or use three terminal tabs. After login, commands execute on that server; use `exit` to return to your local machine. Terraform-generated SSH commands quote the full key path because this project path contains spaces.
 
+For Ubuntu images, the SSH username is `ubuntu`. Enter your key passphrase if you set one during generation. Check your login with `whoami`; it should print `ubuntu`.
+
+If SSH fails:
+
+- **Connection timed out:** check that the instance is running and that `ssh_allowed_cidr` matches your current public IP with `/32`. If your IP changed, update `terraform.tfvars` and apply the security group change.
+- **Permission denied (publickey):** use `ubuntu` and the original matching private key, `../.keys/bankapp-eks`.
+- **Private key permissions too open:** run `chmod 600 ../.keys/bankapp-eks`.
+
 Only port 22 is open inbound, restricted to your IP. Add service ports deliberately when installing tools later. Public IPs can change after stop/start; refresh Terraform outputs before using them again. Losing the private key means losing this SSH login, so keep it outside Git and backed up securely.
 
-## EKS access
+## 4. Connect to EKS
 
 EKS worker SSH remains disabled and does not need the EC2 key. After applying, use the same AWS identity that created the cluster:
 
